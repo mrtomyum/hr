@@ -1,59 +1,66 @@
 package models
 
 import (
-	"testing"
 	"fmt"
+	"testing"
+	"time"
 )
 
-func TestModels(t *testing.T) {
-	users := MockUser()
-	for _, u := range users {
-		fmt.Println(u)
-	}
-	persons := MockPerson()
-	for _, p := range persons {
-		fmt.Println(p)
-	}
-	titles := MockTitle()
-	for _, t := range titles {
-		fmt.Println(t)
-	}
-	orgs := MockOrg()
-	for _, o := range orgs {
-		fmt.Println(o)
-	}
-}
+//func TestModels(t *testing.T) {
+//	users := MockUser()
+//	for _, u := range users {
+//		fmt.Println(u)
+//	}
+//	persons := MockPerson()
+//	for _, p := range persons {
+//		fmt.Println(p)
+//	}
+//	jobs := MockJob()
+//	for _, t := range jobs {
+//		fmt.Println(t)
+//	}
+//	orgs := MockOrg()
+//	for _, o := range orgs {
+//		fmt.Println(o)
+//	}
+//}
 
 func TestDB(t *testing.T) {
 	db := SetupDB("sqlite3", "hr.db")
 	db.DropTableIfExists(&User{})
 	db.DropTableIfExists(&Person{})
-	db.DropTableIfExists(&Title{})
+	db.DropTableIfExists(&Job{})
 	db.DropTableIfExists(&Org{})
+	db.DropTableIfExists(&Email{})
 	db.CreateTable(&User{})
 	db.CreateTable(&Person{})
-	db.CreateTable(&Title{})
+	db.CreateTable(&Job{})
 	db.CreateTable(&Org{})
+	db.CreateTable(&Email{})
 
-	users := MockUser()
-	for _, u := range users {
-		db.Create(u)
-	}
+	//users := MockUser()
+	//for _, u := range users {
+	//	db.Create(u)
+	//}
 	persons := MockPerson()
 	for _, p := range persons {
 		db.Create(p)
 	}
-	titles := MockTitle()
-	for _, t := range titles {
-		db.Create(t)
-	}
+	//jobs := MockJob()
+	//for _, t := range jobs {
+	//	db.Create(t)
+	//}
 	orgs := MockOrg()
 	for _, o := range orgs {
 		db.Create(o)
 	}
+	//emails := MockEmail()
+	//for _, e := range emails {
+	//	db.Create(e)
+	//}
 }
 
-func TestUserPassword(t *testing.T){
+func TestUserPassword(t *testing.T) {
 	db := SetupDB("sqlite3", "hr.db")
 	u := User{}
 	db.Debug().First(&u)
@@ -62,18 +69,18 @@ func TestUserPassword(t *testing.T){
 	pass := "Thisisnewpass123"
 	err := u.ChangePass(pass)
 	if err != nil {
-		t.Error("Fail ChangPass: ",err)
+		t.Error("Fail ChangPass: ", err)
 	}
 	fmt.Println(u)
 	db.Debug().Save(&u)
 	db.Debug().First(&u)
 	err = u.VerifyPass(pass)
 	if err != nil {
-		t.Error("Fail ComparePassword: ",err)
+		t.Error("Fail ComparePassword: ", err)
 	}
 	fmt.Println("Corrected Password!")
 }
-func TestUserWrongPassword(t *testing.T){
+func TestUserWrongPassword(t *testing.T) {
 	db := SetupDB("sqlite3", "hr.db")
 	u := User{}
 	db.Debug().First(&u)
@@ -82,7 +89,7 @@ func TestUserWrongPassword(t *testing.T){
 	pass := "Thisisnewpass123"
 	err := u.ChangePass(pass)
 	if err != nil {
-		t.Error("Fail ChangPass: ",err)
+		t.Error("Fail ChangPass: ", err)
 	}
 	fmt.Println(u)
 	db.Debug().Save(&u)
@@ -94,6 +101,51 @@ func TestUserWrongPassword(t *testing.T){
 		t.Error("Expected Wrong pass fail but compare pass!!")
 		t.FailNow()
 	}
-	fmt.Println("EOP")
+}
 
+func TestQueryEmailByPersonFirstName(t *testing.T) {
+	db := SetupDB("sqlite3", "hr.db")
+	expectEmail := "tom@nopadol.com"
+
+	p := Person{}
+	db.Debug().Where("first_name like ?", "%K%").Preload("Jobs").Preload("Users").Preload("Emails").Find(&p)
+	fmt.Println(p.FirstName)
+	for _, u := range p.Users {
+		fmt.Println("User:", u)
+	}
+	fmt.Println("Jobs:", p.Jobs)
+	fmt.Println("Emails:", p.Emails)
+
+	count := 0
+	for _, e := range p.Emails {
+		if e.Email == expectEmail {
+			count++
+			fmt.Println(e.Email)
+		}
+		fmt.Println(e.Email)
+	}
+	if count == 0 {
+		t.Error("Expected Kasem email =", expectEmail)
+	}
+	fmt.Println("TestQueryEmailByPersonFirstName = OK...")
+}
+
+func TestAddPerson(t *testing.T) {
+	db := SetupDB("sqlite3", "hr.db")
+	p := Person{
+		Users: []User{
+			{Name: "bee"},
+		},
+		Jobs: []Job{
+			{JobID: 4, OrgID: 5, NameTH: "เจ้าหน้าที่ปฏิบัติการสารสนเทศ", NameEN: "MIS"},
+		},
+		Emails: []Email{
+			{Email: "mis@nopadol.com"},
+		},
+		FirstName: "เอกชัย",
+		LastName:  "จันตะไพ",
+		BirthDate: time.Date(1984, 5, 5, 0, 0, 0, 0, time.UTC),
+		CitizenID: "3509901371234",
+	}
+	db.Debug().Create(&p)
 }
