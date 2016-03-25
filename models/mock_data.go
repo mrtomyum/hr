@@ -58,10 +58,25 @@ func MockPerson() []*Person {
 		&Person{
 			Users: []User{{Name: "noi"}},
 			Jobs: []Job{
-				{NameTH: "ผู้จัดการฝ่าย IT"},
+				{JobID:3, OrgID: 9, NameTH: "ผู้จัดการฝ่าย IT", NameEN: "IT Manager"},
 			},
 			FirstName: "Satit",
 			LastName: "Chomwattana",
+		},
+		&Person{
+			Users: []User{
+				{Name: "bee"},
+			},
+			Jobs: []Job{
+				{JobID: 4, OrgID: 9, NameTH: "เจ้าหน้าที่ปฏิบัติการสารสนเทศ", NameEN: "MIS"},
+			},
+			Emails: []Email{
+				{Email: "mis@nopadol.com"},
+			},
+			FirstName: "เอกชัย",
+			LastName:  "จันตะไพ",
+			BirthDate: time.Date(1984, 5, 5, 0, 0, 0, 0, time.UTC),
+			CitizenID: "3509901371234",
 		},
 	}
 	return persons
@@ -89,6 +104,7 @@ func MockOrg() []*Org {
 		&Org{OrgID: 1, NameTH: "สำนักงาน", NameEN: "Back Office", NameShort: "BO"},
 		&Org{OrgID: 6, NameTH: "บุคคล", NameEN: "Human Resource", NameShort: "HR"},
 		&Org{OrgID: 6, NameTH: "บัญชี", NameEN: "Accounting", NameShort: "HR"},
+		&Org{OrgID: 6, NameTH: "คอมพิวเตอร์", NameEN: "Information Technoloty", NameShort: "IT"},
 	}
 	return orgs
 }

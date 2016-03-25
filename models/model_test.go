@@ -3,7 +3,6 @@ package models
 import (
 	"fmt"
 	"testing"
-	"time"
 )
 
 //func TestModels(t *testing.T) {
@@ -25,7 +24,7 @@ import (
 //	}
 //}
 
-func TestDB(t *testing.T) {
+func TestGenMockData(t *testing.T) {
 	db := SetupDB("sqlite3", "hr.db")
 	db.DropTableIfExists(&User{})
 	db.DropTableIfExists(&Person{})
@@ -128,24 +127,4 @@ func TestQueryEmailByPersonFirstName(t *testing.T) {
 		t.Error("Expected Kasem email =", expectEmail)
 	}
 	fmt.Println("TestQueryEmailByPersonFirstName = OK...")
-}
-
-func TestAddPerson(t *testing.T) {
-	db := SetupDB("sqlite3", "hr.db")
-	p := Person{
-		Users: []User{
-			{Name: "bee"},
-		},
-		Jobs: []Job{
-			{JobID: 4, OrgID: 5, NameTH: "เจ้าหน้าที่ปฏิบัติการสารสนเทศ", NameEN: "MIS"},
-		},
-		Emails: []Email{
-			{Email: "mis@nopadol.com"},
-		},
-		FirstName: "เอกชัย",
-		LastName:  "จันตะไพ",
-		BirthDate: time.Date(1984, 5, 5, 0, 0, 0, 0, time.UTC),
-		CitizenID: "3509901371234",
-	}
-	db.Debug().Create(&p)
 }

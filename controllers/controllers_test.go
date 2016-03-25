@@ -29,7 +29,7 @@ func GetAllPerson(w rest.ResponseWriter, r *rest.Request) {
 	//lock.RLock()
 	db := models.SetupDB("sqlite3", "../models/hr.db")
 	persons := []models.Person{}
-	db.Debug().Find(&persons)
+	db.Debug().Preload("Users").Preload("Jobs").Preload("Emails.Email").Find(&persons)
 	//lock.RUnlock()
 	w.WriteJson(&persons)
 }
@@ -40,14 +40,28 @@ func GetPerson(w rest.ResponseWriter, r *rest.Request) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	id := "%" + decode + "%"
-	
+	param := "%" + decode + "%"
+
 	db := models.SetupDB("sqlite3", "../models/hr.db")
 	persons := []models.Person{}
-	if db.Debug().Where("first_name like ? or last_name like ?", id, id).Find(&persons).Error != nil {
+	if db.Debug().Where("first_name like ? or last_name like ?", param, param).Find(&persons).Error != nil {
 	//if db.Debug().Find(&persons, id).Error != nil {
 		rest.NotFound(w, r)
 		return
 	}
 	w.WriteJson(&persons)
+}
+
+func PostPerson(w rest.ResponseWriter, r *rest.Request){
+	p := models.Person{}
+	if err := r.DecodeJsonPayload(&p); err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	db := models.SetupDB("sqlite3", "../models/hr.db")
+	if err := db.Save(&p).Error; err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteJson(&p)
 }
